@@ -1,0 +1,83 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Highcharts 示例
+                <span style="color:#999;font-size:12px;">
+                    （CDN 打不开时自动改用本地 echarts.js 渲染同一份数据）
+                </span>
+            </div>
+            <div class="panel-body">
+                <div id="container" style="width: 100%;height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="http://cdn.highcharts.com.cn/highcharts/highcharts.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            // 数据仍然来自后端 JSON 接口，与 chart_list 页面共用 /chart/bar/
+            $.ajax({
+                url: "/chart/bar/",
+                type: "get",
+                dataType: "JSON",
+                success: function (res) {
+                    if (!res.status) {
+                        return;
+                    }
+                    if (window.Highcharts) {
+                        renderHighcharts(res.data);
+                    } else {
+                        // CDN 不可用：动态加载本地 echarts.js 兜底
+                        loadEcharts(function () {
+                            renderEcharts(res.data);
+                        });
+                    }
+                }
+            })
+        })
+
+        function renderHighcharts(data) {
+            Highcharts.chart('container', {
+                chart: {type: 'column'},
+                title: {text: '员工业绩阅读汇总信息'},
+                xAxis: {categories: data.x_axis},
+                yAxis: {title: {text: '数值'}},
+                legend: {enabled: true},
+                series: data.series_list.map(function (item) {
+                    return {name: item.name, data: item.data};
+                }
+            });
+        }
+
+        function loadEcharts(callback) {
+            var script = document.createElement('script');
+            script.src = "{% static 'js/echarts.js' %}";
+            script.onload = callback;
+            script.onerror = callback;
+            document.body.appendChild(script);
+        }
+
+        function renderEcharts(data) {
+            if (!window.echarts) {
+                document.getElementById('container').innerHTML =
+                    '<p style="padding:20px;color:#999;">图表脚本未能加载，请检查 static/js/echarts.js 是否存在。</p>';
+                return;
+            }
+            var myChart = echarts.init(document.getElementById('container'));
+            myChart.setOption({
+                title: {text: '员工业绩阅读汇总信息', left: 'center'},
+                tooltip: {},
+                legend: {bottom: 0},
+                xAxis: {type: 'category', data: data.x_axis},
+                yAxis: {type: 'value'},
+                series: data.series_list
+            });
+        }
+    </script>
+{% endblock %}

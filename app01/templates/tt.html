@@ -1,0 +1,90 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">新建</h3>
+            </div>
+            <div class="panel-body">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div style="height: 100px;width: 100px;padding: 2px;border: 1px solid #dddddd;position: relative;margin-bottom: 15px;">
+                        <img style="height: 100%;width: 100%;border: 0;overflow: hidden;"
+                             id="previewImg"
+                             src="/static/img/default.png">
+                        <input style="top: 0;left: 0;right: 0;bottom: 0;opacity: 0;position: absolute;z-index: 102;"
+                               id="avatarImg"
+                               name="image" type="file" class="img-file"/>
+                    </div>
+
+                    {% for field in form %}
+                        {% if field.name != 'image' %}
+                            <div class="form-group">
+                                <label>{{ field.label }}</label>
+                                {{ field }}
+                                <span style="color: red;">{{ field.errors.0 }}</span>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-primary">提 交</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+                已上传头像
+            </div>
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>头像</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for obj in queryset %}
+                    <tr>
+                        <th>{{ obj.id }}</th>
+                        <td>{{ obj.title }}</td>
+                        <td><img src="{{ obj.image.url }}" style="height: 60px;"></td>
+                        <td>
+                            <a class="btn btn-danger btn-xs" href="/tt/delete/?nid={{ obj.id }}"
+                               onclick="return confirm('确定删除该头像吗？');">删除</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center;color: #999;">暂无数据，先上传一个头像吧</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(function () {
+            bindChangeAvatar2();
+        });
+
+        function bindChangeAvatar2() {
+            $('#avatarImg').change(function () {
+                var file_obj = $(this)[0].files[0];
+                var reader = new FileReader();
+                reader.readAsDataURL(file_obj);
+                reader.onload = function (e) {
+                    $('#previewImg')[0].src = this.result;
+                };
+            })
+        }
+    </script>
+{% endblock %}

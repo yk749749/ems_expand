@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% load static %}  <!-- 必须加这行才能使用 static 标签 -->
+
+<!-- 1. 引入时间插件的 CSS 样式 -->
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-datepicker/css/bootstrap-datepicker.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"> 编辑用户 </h3>
+            </div>
+            <div class="panel-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label>{{ field.label }}</label>
+                            <!-- 这里 Django 会自动把 create_time 的输入框 id 生成为 id_create_time -->
+                            {{ field }}
+                            <span style="color: red;">{{ field.errors.0 }}</span>
+                        </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-primary">提 交</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+<!-- 2. 引入时间插件的 JS 并进行初始化 -->
+{% block js %}
+    <!-- 引入基础 JS -->
+    <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-3.4.1/js/bootstrap.js' %}"></script>
+
+    <!-- 引入时间插件核心 JS 和中文语言包 -->
+    <script src="{% static 'plugins/bootstrap-datepicker/js/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
+
+    <!-- 初始化时间插件 -->
+    <script>
+        $(function () {
+            // 绑定到 Django 自动生成的 ID 上
+            $('#id_create_time').datepicker({
+                format: 'yyyy-mm-dd',   // 日期格式
+                startDate: '0',         // 0 表示从今天开始，不允许选过去的日期
+                language: "zh-CN",      // 中文显示
+                autoclose: true,        // 选中后自动关闭弹窗
+                todayHighlight: true    // 高亮显示今天（可选，为了更好看）
+            });
+        });
+    </script>
+{% endblock %}
